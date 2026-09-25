@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using ExpertSysApp.Models;
 
-namespace ExpertSysApp.Controller
+namespace ExpertSysApp.Controllers
 {
     public class Controller
     {
@@ -30,7 +30,6 @@ namespace ExpertSysApp.Controller
             File.WriteAllText(_filePath, json);
         }
 
-        // Логика поиска с трассировкой
         public (string result, List<TraceStep> trace) SearchAnswer(List<string> userFacts)
         {
             var trace = new List<TraceStep>();

@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
+using ExpertSysApp.Controllers;
+
 namespace ExpertSysApp.Views
 {
     /// <summary>
@@ -17,9 +19,36 @@ namespace ExpertSysApp.Views
     /// </summary>
     public partial class RuleEditorWindow : Window
     {
-        public RuleEditorWindow()
+        private Controller _controller;
+
+        public RuleEditorWindow(Controller controller)
         {
             InitializeComponent();
+            _controller = controller;
+            LoadData();
+        }
+
+        private void LoadData()
+        {
+            LbRules.ItemsSource = null;
+            LbRules.ItemsSource = _controller.Rules;
+        }
+
+        private void LbRules_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+        }
+
+        private void BtnClear_Click(object sender, RoutedEventArgs e)
+        {
+        }
+        private void BtnAdd_Click(object sender, RoutedEventArgs e)
+        {
+        }
+        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
+        {
+        }
+        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
         }
     }
 }

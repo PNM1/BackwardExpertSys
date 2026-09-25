@@ -6,7 +6,47 @@
         xmlns:local="clr-namespace:ExpertSysApp.Views"
         mc:Ignorable="d"
         Title="RuleEditorWindow" Height="450" Width="800">
-    <Grid>
-        
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="0,0,10,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Список правил в базе:" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ListBox x:Name="LbRules" Grid.Row="1" SelectionChanged="LbRules_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="3">
+                            <TextBlock Text="ID: " FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Id}" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding Conclusion}" FontStyle="Italic"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+        <StackPanel Grid.Column="1">
+            <TextBlock Text="Параметры правила" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <TextBlock Text="ID правила:"/>
+            <TextBox x:Name="TxtId" IsReadOnly="True" Background="LightGray" Margin="0,2,0,8"/>
+
+            <TextBlock Text="Условия (через запятую):&#x0a;Пример: Двигатель=не заводится, Стартер=крутит"/>
+            <TextBox x:Name="TxtConditions" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,2,0,8"/>
+
+            <TextBlock Text="Заключение (Результат):&#x0a;Пример: Система зажигания=неисправна"/>
+            <TextBox x:Name="TxtConclusion" Height="50" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,2,0,15"/>
+
+            <Button Content="Очистить форму" Click="BtnClear_Click" Margin="0,0,0,5"/>
+            <Button Content="Добавить новое" Click="BtnAdd_Click" Background="LightGreen" Margin="0,0,0,5"/>
+            <Button Content="Сохранить изменения" Click="BtnUpdate_Click" Background="LightYellow" Margin="0,0,0,5"/>
+            <Button Content="Удалить правило" Click="BtnDelete_Click" Background="LightCoral" Margin="0,0,0,15"/>
+        </StackPanel>
     </Grid>
 </Window>

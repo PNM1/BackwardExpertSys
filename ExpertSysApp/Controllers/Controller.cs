@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using ExpertSysApp.Models;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
-using ExpertSysApp.Models;
 
 namespace ExpertSysApp.Controllers
 {
@@ -54,10 +55,25 @@ namespace ExpertSysApp.Controllers
             string json = JsonSerializer.Serialize(Rules, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_filePath, json);
         }
-        public (string result, List<TraceStep> trace) SearchAnswer(List<string> userFacts)
+        public (string result, List<TraceStep> trace, string workingMemoryLog) SearchAnswer(List<string> userFacts)
         {
             var trace = new List<TraceStep>();
-            var workingMemory = new HashSet<string>(userFacts);
+            var logingMemory = new HashSet<string>(userFacts);
+
+            var memoryLogBuilder = new StringBuilder();
+            int stepCounter = 1;
+
+            memoryLogBuilder.AppendLine($"{stepCounter}.");
+            foreach (var fact in logingMemory)
+            {
+                memoryLogBuilder.AppendLine(fact);
+            }
+            stepCounter++;
+
+
+            var workingMemory = new HashSet<string>(
+                userFacts.Select(fact => fact.ToLower().Replace(" ", ""))
+                );
             bool ruleApplied;
 
             do
@@ -84,7 +100,14 @@ namespace ExpertSysApp.Controllers
                     if (matchAll && !workingMemory.Contains(temp_rule))
                     {
                         workingMemory.Add(temp_rule);
+                        logingMemory.Add(rule.Conclusion);
                         trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Success });
+                        memoryLogBuilder.AppendLine($"{stepCounter}.");
+                        foreach (var item in logingMemory)
+                        {
+                            memoryLogBuilder.AppendLine(item);
+                        }
+                        stepCounter++;
                         ruleApplied = true;
                         break;
                     }
@@ -102,11 +125,11 @@ namespace ExpertSysApp.Controllers
             {
                 if (workingMemory.Contains(rule.Conclusion))
                 {
-                    return ($"Результат: {rule.Conclusion}", trace);
+                    return ($"Результат: {rule.Conclusion}", trace, memoryLogBuilder.ToString());
                 }
             }
 
-            return ("Результат не найден. Уточните правила или исходные данные.", trace);
+            return ("Результат не найден. Уточните правила или исходные данные.", trace, memoryLogBuilder.ToString());
         }
 
         private string FormatRule(Rule r)

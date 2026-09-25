@@ -26,7 +26,7 @@
                 <ColumnDefinition Width="Auto" x:Name="TraceColumnDef"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0" Margin="0,0,5,0">
+            <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -52,6 +52,8 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Text="Трассировка поиска:" FontWeight="Bold"/>
@@ -62,6 +64,9 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+                    <TextBlock Grid.Row="2" Margin="0,5,0,0" Text="Состояние рабочей базы данных:" FontWeight="Bold"/>
+                    <TextBox Grid.Row="3" x:Name="TxtWorkingMemory" IsReadOnly="True" Margin="0,5,0,0"
+                         TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="100"/>
                 </Grid>
             </Border>
         </Grid>

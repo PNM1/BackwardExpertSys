@@ -26,19 +26,20 @@ namespace ExpertSysApp
         private void Search_Click(object sender, RoutedEventArgs e)
         {
             var facts = TxtInputFacts.Text.Split(',')
-                .Select(f => f.Trim().ToLower().Replace(" ", ""))
+                .Select(f => f.Trim())
                 .Where(f => !string.IsNullOrEmpty(f))
                 .ToList();
 
-            var (result, trace) = _controller.SearchAnswer(facts);
+            var (result, trace, memoryLog) = _controller.SearchAnswer(facts);
             TxtResult.Text = result;
+            TxtWorkingMemory.Text = memoryLog;
 
             var uiTrace = trace.Select(t => {
                 Brush color = Brushes.LightCoral;
                 if (t.Status == TraceStatus.Success)
-                    color = System.Windows.Media.Brushes.LightGreen;
+                    color = Brushes.LightGreen;
                 else if (t.Status == TraceStatus.Partial)
-                    color = System.Windows.Media.Brushes.LightYellow;
+                    color = Brushes.LightYellow;
 
                 return new
                 {
@@ -62,6 +63,7 @@ namespace ExpertSysApp
             TraceColumnDef.Width = new GridLength(0);
             TracePanel.Visibility = Visibility.Collapsed;
             this.Width = 600;
+            TxtWorkingMemory.Clear();
         }
 
         private void OpenEditor_Click(object sender, RoutedEventArgs e)

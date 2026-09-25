@@ -5,7 +5,7 @@ namespace ExpertSysApp.Models
     public class Rule
     {
         public int Id { get; set; }
-        public List<Fact> Conditions { get; set; } = new();
-        public Fact Conclusion { get; set; } = new();
+        public List<string> Conditions { get; set; } = new List<string>();
+        public string Conclusion { get; set; } = string.Empty;
     }
 }

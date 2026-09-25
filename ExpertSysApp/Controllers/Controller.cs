@@ -7,7 +7,7 @@ namespace ExpertSysApp.Controllers
 {
     public class Controller
     {
-        private string _filePath = "rules.json";
+        private string _filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "rules.json");
         public List<Rule> Rules { get; private set; } = new List<Rule>();
 
         public Controller()
@@ -22,14 +22,38 @@ namespace ExpertSysApp.Controllers
                 string json = File.ReadAllText(_filePath);
                 Rules = JsonSerializer.Deserialize<List<Rule>>(json) ?? new List<Rule>();
             }
+            else
+            {
+                Rules = new List<Rule>();
+            }
         }
-
+        public void LoadRulesFromPath(string path)
+        {
+            _filePath = path;
+            if (File.Exists(_filePath))
+            {
+                string json = File.ReadAllText(_filePath);
+                Rules = JsonSerializer.Deserialize<List<Rule>>(json) ?? new List<Rule>();
+            }
+            else
+            {
+                Rules = new List<Rule>();
+            }
+        }
         public void SaveRules()
         {
+            if (string.IsNullOrEmpty(_filePath))
+            {
+                _filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "rules.json");
+            }
+            SaveRulesToPath(_filePath);
+        }
+        public void SaveRulesToPath(string path)
+        {
+            _filePath = path;
             string json = JsonSerializer.Serialize(Rules, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_filePath, json);
         }
-
         public (string result, List<TraceStep> trace) SearchAnswer(List<string> userFacts)
         {
             var trace = new List<TraceStep>();
@@ -46,7 +70,8 @@ namespace ExpertSysApp.Controllers
 
                     foreach (var cond in rule.Conditions)
                     {
-                        if (workingMemory.Contains(cond))
+                        string temp_cond = cond.ToLower().Replace(" ", "");
+                        if (workingMemory.Contains(temp_cond))
                         {
                             matchPartial = true;
                         }
@@ -55,8 +80,8 @@ namespace ExpertSysApp.Controllers
                             matchAll = false;
                         }
                     }
-
-                    if (matchAll && !workingMemory.Contains(rule.Conclusion))
+                    string temp_rule = rule.Conclusion.ToLower().Replace(" ", "");
+                    if (matchAll && !workingMemory.Contains(temp_rule))
                     {
                         workingMemory.Add(rule.Conclusion);
                         trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Success });

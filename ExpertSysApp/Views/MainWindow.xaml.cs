@@ -1,6 +1,7 @@
 ﻿using ExpertSysApp.Controllers;
 using ExpertSysApp.Models;
 using ExpertSysApp.Views;
+using Microsoft.Win32;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,7 +26,7 @@ namespace ExpertSysApp
         private void Search_Click(object sender, RoutedEventArgs e)
         {
             var facts = TxtInputFacts.Text.Split(',')
-                .Select(f => f.Trim())
+                .Select(f => f.Trim().ToLower().Replace(" ", ""))
                 .Where(f => !string.IsNullOrEmpty(f))
                 .ToList();
 
@@ -58,6 +59,35 @@ namespace ExpertSysApp
         {
             var editor = new RuleEditorWindow(_controller);
             editor.ShowDialog();
+        }
+        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                InitialDirectory = System.AppDomain.CurrentDomain.BaseDirectory
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                _controller.LoadRulesFromPath(openFileDialog.FileName);
+                MessageBox.Show("База правил успешно загружена из файла.", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        private void SaveFileAs_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                InitialDirectory = System.AppDomain.CurrentDomain.BaseDirectory,
+                FileName = "rules.json"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                _controller.SaveRulesToPath(saveFileDialog.FileName);
+                MessageBox.Show("База правил успешно сохранена.", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
     }
 }

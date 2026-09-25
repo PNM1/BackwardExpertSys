@@ -5,16 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp"
         mc:Ignorable="d"
-        Title="Помощник по ремонту автомобилей" Height="450" Width="600"
+        Title="Помощник по ремонту автомобилей" Height="450" Width="580"
         ResizeMode="NoResize">
-    <Grid Margin="10 0">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ToolBarPanel Grid.Row="0">
+        <ToolBarPanel Grid.Row="0" Orientation="Horizontal" Margin="10, 0">
+            <Button Content="Открыть файл" Click="OpenFile_Click" Margin="0,0,5,0" Width="100" HorizontalAlignment="Left"/>
+            <Button Content="Сохранить базу правил" Click="SaveFileAs_Click" Margin="0,0,5,0" Width="150" HorizontalAlignment="Left"/>
             <Button Content="Редактор базы правил" Click="OpenEditor_Click" Width="150" HorizontalAlignment="Left"/>
         </ToolBarPanel>
 
@@ -36,10 +38,10 @@
                 <TextBox x:Name="TxtResult" IsReadOnly="True" Height="170"/>
             </StackPanel>
 
-            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Padding="5" x:Name="TracePanel" Visibility="Collapsed" Width="350">
+            <Border Grid.Column="1" Margin="10,0,0,0" BorderBrush="Gray" BorderThickness="1" Padding="5" x:Name="TracePanel" Visibility="Collapsed" Width="350">
                 <StackPanel>
                     <TextBlock Text="Трассировка поиска:" FontWeight="Bold"/>
-                    <ListBox x:Name="LbTrace" Height="340" Margin="0,5,0,0">
+                    <ListBox x:Name="LbTrace" Height="335" Margin="0,5,0,0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding RuleDescription}" Background="{Binding StatusColor}" Padding="3"/>

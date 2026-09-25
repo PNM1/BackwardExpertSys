@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ExpertSysApp.Models
 {
     public class Rule

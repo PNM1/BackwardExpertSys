@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp.Views"
         mc:Ignorable="d"
-        Title="RuleEditorWindow" Height="450" Width="800">
+        Title="Редактор базы правил" Height="450" Width="800">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -37,10 +37,10 @@
             <TextBlock Text="ID правила:"/>
             <TextBox x:Name="TxtId" IsReadOnly="True" Background="LightGray" Margin="0,2,0,8"/>
 
-            <TextBlock Text="Условия (через запятую):&#x0a;Пример: Двигатель=не заводится, Стартер=крутит"/>
+            <TextBlock Text="Условия (через запятую):"/>
             <TextBox x:Name="TxtConditions" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,2,0,8"/>
 
-            <TextBlock Text="Заключение (Результат):&#x0a;Пример: Система зажигания=неисправна"/>
+            <TextBlock Text="Заключение (Результат):"/>
             <TextBox x:Name="TxtConclusion" Height="50" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,2,0,15"/>
 
             <Button Content="Очистить форму" Click="BtnClear_Click" Margin="0,0,0,5"/>

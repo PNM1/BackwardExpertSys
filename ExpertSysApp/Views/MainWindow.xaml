@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp"
         mc:Ignorable="d"
-        Title="Помощник по ремонту автомобилей" Height="450" Width="800"
-        ResizeMode="CanResize">
+        Title="Помощник по ремонту автомобилей" Height="450" Width="600"
+        ResizeMode="NoResize">
     <Grid Margin="10 0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -25,21 +25,21 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
-                <TextBlock Text="Исходные данные (через запятую, например: Двигатель=не заводится):"/>
-                <TextBox x:Name="TxtInputFacts" Height="30" Margin="0,5,0,10"/>
+                <TextBlock Text="Исходные данные:"/>
+                <TextBox x:Name="TxtInputFacts" MinHeight="50" Margin="0,5,0,10"/>
 
                 <CheckBox x:Name="ChkTrace" Content="Показать трассировку поиска" Checked="ChkTrace_Checked" Unchecked="ChkTrace_Unchecked" Margin="0,0,0,10"/>
 
                 <Button Content="Найти ответ" Click="Search_Click" Height="35" Background="LightGreen"/>
 
-                <TextBlock Text="Результат:" FontWeight="Bold" Margin="0,15,0,5"/>
-                <TextBox x:Name="TxtResult" IsReadOnly="True" Height="80" TextWrapping="Wrap"/>
+                <TextBlock Text="Результат:" FontWeight="Bold" Margin="0,35,0,5"/>
+                <TextBox x:Name="TxtResult" IsReadOnly="True" Height="170"/>
             </StackPanel>
 
             <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Padding="5" x:Name="TracePanel" Visibility="Collapsed" Width="350">
                 <StackPanel>
                     <TextBlock Text="Трассировка поиска:" FontWeight="Bold"/>
-                    <ListBox x:Name="LbTrace" Height="250" Margin="0,5,0,0">
+                    <ListBox x:Name="LbTrace" Height="340" Margin="0,5,0,0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding RuleDescription}" Background="{Binding StatusColor}" Padding="3"/>

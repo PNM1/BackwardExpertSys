@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp"
         mc:Ignorable="d"
-        Title="Помощник по ремонту автомобилей" Height="450" Width="580"
-        ResizeMode="NoResize">
+        Title="Помощник по ремонту автомобилей" Height="450" Width="580" MinHeight="310" MinWidth="460"
+        ResizeMode="CanResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -26,29 +26,43 @@
                 <ColumnDefinition Width="Auto" x:Name="TraceColumnDef"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Исходные данные:"/>
-                <TextBox x:Name="TxtInputFacts" MinHeight="50" Margin="0,5,0,10"/>
+            <Grid Grid.Column="0" Margin="0,0,5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="2*"/>
+                </Grid.RowDefinitions>
 
-                <CheckBox x:Name="ChkTrace" Content="Показать трассировку поиска" Checked="ChkTrace_Checked" Unchecked="ChkTrace_Unchecked" Margin="0,0,0,10"/>
+                <TextBlock Grid.Row="0" Text="Стартовая ситуация:" FontWeight="Bold"/>
+                <TextBox Grid.Row="1" x:Name="TxtInputFacts" Margin="0,5,0,10" TextWrapping="Wrap" AcceptsReturn="True"/>
 
-                <Button Content="Найти ответ" Click="Search_Click" Height="35" Background="LightGreen"/>
+                <CheckBox Grid.Row="2" x:Name="ChkTrace" Content="Показать сведения о поиске" Checked="ChkTrace_Checked" Unchecked="ChkTrace_Unchecked" Margin="0,0,0,10"/>
 
-                <TextBlock Text="Результат:" FontWeight="Bold" Margin="0,35,0,5"/>
-                <TextBox x:Name="TxtResult" IsReadOnly="True" Height="170"/>
-            </StackPanel>
+                <Button Grid.Row="3" Content="Найти ответ" Click="Search_Click" Height="35" Background="LightGreen"/>
 
-            <Border Grid.Column="1" Margin="10,0,0,0" BorderBrush="Gray" BorderThickness="1" Padding="5" x:Name="TracePanel" Visibility="Collapsed" Width="350">
-                <StackPanel>
-                    <TextBlock Text="Трассировка поиска:" FontWeight="Bold"/>
-                    <ListBox x:Name="LbTrace" Height="335" Margin="0,5,0,0">
+                <TextBlock Grid.Row="4" Text="Результат:" FontWeight="Bold" Margin="0,15,0,5"/>
+                <TextBox Grid.Row="5" x:Name="TxtResult" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"/>
+            </Grid>
+
+            <Border Grid.Column="1" Margin="5,0,0,0" x:Name="TracePanel" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Трассировка поиска:" FontWeight="Bold"/>
+                    <ListBox Grid.Row="1" x:Name="LbTrace" Margin="0,5,0,0">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding RuleDescription}" Background="{Binding StatusColor}" Padding="3"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

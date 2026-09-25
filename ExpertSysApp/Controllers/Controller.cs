@@ -83,7 +83,7 @@ namespace ExpertSysApp.Controllers
                     string temp_rule = rule.Conclusion.ToLower().Replace(" ", "");
                     if (matchAll && !workingMemory.Contains(temp_rule))
                     {
-                        workingMemory.Add(rule.Conclusion);
+                        workingMemory.Add(temp_rule);
                         trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Success });
                         ruleApplied = true;
                         break;
@@ -91,6 +91,10 @@ namespace ExpertSysApp.Controllers
                     else if (matchPartial)
                     {
                         trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Partial });
+                    }
+                    else
+                    {
+                        trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Unmatched });
                     }
                 }
             } while (ruleApplied);

@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp.Views"
         mc:Ignorable="d"
-        Title="Редактор базы правил" Height="450" Width="800" WindowStartupLocation="CenterOwner">
+        Title="Редактор базы правил" Height="450" Width="800" MinHeight="400" MinWidth="580" 
+        WindowStartupLocation="CenterOwner">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -21,10 +22,19 @@
             <ListBox x:Name="LbRules" Grid.Row="1" SelectionChanged="LbRules_SelectionChanged">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Margin="3">
-                            <TextBlock Text="ID: " FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Id}" Margin="0,0,10,0"/>
-                            <TextBlock Text="{Binding Conclusion}" FontStyle="Italic"/>
+                        <StackPanel Orientation="Vertical" Margin="4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ID: " FontWeight="Bold" Foreground="Gray"/>
+                                <TextBlock Text="{Binding Id}" FontWeight="Bold" Foreground="Gray" Margin="0,0,8,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ЕСЛИ: " FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding ConditionsString}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                <TextBlock Text="ТО: " FontWeight="SemiBold" Foreground="DarkGreen"/>
+                                <TextBlock Text="{Binding Conclusion}" FontStyle="Italic" Foreground="DarkGreen"/>
+                            </StackPanel>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

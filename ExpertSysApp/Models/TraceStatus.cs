@@ -1,4 +1,4 @@
 ﻿namespace ExpertSysApp.Models
 {
-    public enum TraceStatus { Partial, Success }
+    public enum TraceStatus { Unmatched, Partial, Success }
 }

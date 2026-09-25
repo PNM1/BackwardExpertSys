@@ -33,9 +33,18 @@ namespace ExpertSysApp
             var (result, trace) = _controller.SearchAnswer(facts);
             TxtResult.Text = result;
 
-            var uiTrace = trace.Select(t => new {
-                t.RuleDescription,
-                StatusColor = t.Status == TraceStatus.Success ? Brushes.LightGreen : Brushes.LightYellow
+            var uiTrace = trace.Select(t => {
+                Brush color = Brushes.LightCoral;
+                if (t.Status == TraceStatus.Success)
+                    color = System.Windows.Media.Brushes.LightGreen;
+                else if (t.Status == TraceStatus.Partial)
+                    color = System.Windows.Media.Brushes.LightYellow;
+
+                return new
+                {
+                    t.RuleDescription,
+                    StatusColor = color
+                };
             }).ToList();
 
             LbTrace.ItemsSource = uiTrace;
@@ -43,7 +52,7 @@ namespace ExpertSysApp
 
         private void ChkTrace_Checked(object sender, RoutedEventArgs e)
         {
-            TraceColumnDef.Width = new GridLength(360);
+            TraceColumnDef.Width = new GridLength(1, GridUnitType.Star);
             TracePanel.Visibility = Visibility.Visible;
             this.Width = 950;
         }

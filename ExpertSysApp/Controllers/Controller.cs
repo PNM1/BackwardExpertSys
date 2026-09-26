@@ -1,4 +1,5 @@
 ﻿using ExpertSysApp.Models;
+using Microsoft.VisualBasic;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -84,6 +85,7 @@ namespace ExpertSysApp.Controllers
                 userFacts.Select(fact => fact.ToLower().Replace(" ", ""))
                 );
             bool ruleApplied;
+            int iteration = 1;
 
             do
             {
@@ -110,7 +112,7 @@ namespace ExpertSysApp.Controllers
                     {
                         workingMemory.Add(temp_rule);
                         logingMemory.Add(rule.Conclusion);
-                        trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Success });
+                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Success });
                         memoryLogBuilder.AppendLine($"{stepCounter}.");
                         foreach (var item in logingMemory)
                         {
@@ -122,13 +124,15 @@ namespace ExpertSysApp.Controllers
                     }
                     else if (matchPartial)
                     {
-                        trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Partial });
+                        if (workingMemory.Contains(temp_rule)) { continue; }
+                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Partial });
                     }
                     else
                     {
-                        trace.Add(new TraceStep { RuleDescription = FormatRule(rule), Status = TraceStatus.Unmatched });
+                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Unmatched });
                     }
                 }
+                iteration++;
             } while (ruleApplied);
             var rulesWithConclusionInDb = Rules
                 .Where(r => workingMemory.Contains(r.Conclusion.ToLower().Replace(" ", "")))
@@ -138,47 +142,42 @@ namespace ExpertSysApp.Controllers
                 .Where(r => r.Conditions.Any(cond => workingMemory.Contains(cond.ToLower().Replace(" ", ""))))
                 .ToList();
 
-            var intersection = rulesWithConditionInDb
-                .Where(r1 => rulesWithConclusionInDb
-                    .Any(r2 => r1.Conditions.Contains(r2.Conclusion)))
+            var conclusionsInDb = rulesWithConclusionInDb
+                            .Select(r => r.Conclusion)
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+
+            var intersectionConclusions = rulesWithConclusionInDb
+                .Where(rInc => rulesWithConditionInDb
+                    .Any(rCond => rCond.Conditions.Contains(rInc.Conclusion, StringComparer.OrdinalIgnoreCase)))
+                .Select(r => r.Conclusion)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            foreach (var rule in intersection)
-            {
-                if (rulesWithConclusionInDb.Contains(rule)) { rulesWithConclusionInDb.Remove(rule); }
-                if (rulesWithConditionInDb.Contains(rule)) { rulesWithConditionInDb.Remove(rule); }
-            }
+            var uniqueConclusions = conclusionsInDb
+                .Except(intersectionConclusions, StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             var resultBuilder = new StringBuilder();
 
-            if (!rulesWithConclusionInDb.Any() || !intersection.Any())
+            if (!rulesWithConclusionInDb.Any())
             {
                 resultBuilder.AppendLine("Результат не найден");
             }
             else
             {
-                foreach (var rule in intersection)
-                {
-                    foreach(var condition in rulesWithConditionInDb)
-                    {
+                var targetConclusions = uniqueConclusions.Any() ? uniqueConclusions : intersectionConclusions;
 
-                    }
-                    bool allMatchCondition = true;
-                    foreach (var cond in rule.Conditions)
+                foreach (var conclusion in targetConclusions)
+                {
+                    resultBuilder.AppendLine(conclusion);
+
+                    if (intersectionConclusions.Contains(conclusion, StringComparer.OrdinalIgnoreCase))
                     {
-                        if (!workingMemory.Contains(cond.ToLower().Replace(" ", "")))
-                        {
-                            allMatchCondition = false;
-                            break;
-                        }
-                    }
-                    if (!allMatchCondition)
-                    {
-                        rulesWithConclusionInDb.Remove(rule);
-                        resultBuilder.AppendLine(rule.Conclusion);
                         resultBuilder.AppendLine("Найденный системой результат можно уточнить. Введите дополнительные исходные данные");
-                        resultBuilder.AppendLine();
                     }
+
+                    resultBuilder.AppendLine();
                 }
             }
 

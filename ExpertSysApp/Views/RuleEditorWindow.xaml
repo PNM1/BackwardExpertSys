@@ -4,9 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExpertSysApp.Views"
+        xmlns:conv="clr-namespace:ExpertSysApp.Converters"
         mc:Ignorable="d"
         Title="Редактор базы правил" Height="450" Width="800" MinHeight="400" MinWidth="580" 
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <conv:ConditionsToStringConverter x:Key="ConditionsConverter"/>
+    </Window.Resources>
+    
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -29,7 +34,7 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="ЕСЛИ: " FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding ConditionsString}"/>
+                                <TextBlock Text="{Binding Conditions, Converter={StaticResource ConditionsConverter}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                 <TextBlock Text="ТО: " FontWeight="SemiBold" Foreground="DarkGreen"/>

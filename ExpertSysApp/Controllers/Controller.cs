@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
+using System.Windows;
 
 namespace ExpertSysApp.Controllers
 {
     public class Controller
     {
-        private string _filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "rules.json");
+        private string _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "rules.json");
         public List<Rule> Rules { get; private set; } = new List<Rule>();
+
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic)
+        };
 
         public Controller()
         {
@@ -45,14 +54,14 @@ namespace ExpertSysApp.Controllers
         {
             if (string.IsNullOrEmpty(_filePath))
             {
-                _filePath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "rules.json");
+                _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "rules.json");
             }
             SaveRulesToPath(_filePath);
         }
         public void SaveRulesToPath(string path)
         {
             _filePath = path;
-            string json = JsonSerializer.Serialize(Rules, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(Rules, _jsonOptions);
             File.WriteAllText(_filePath, json);
         }
         public (string result, List<TraceStep> trace, string workingMemoryLog) SearchAnswer(List<string> userFacts)
@@ -121,15 +130,59 @@ namespace ExpertSysApp.Controllers
                     }
                 }
             } while (ruleApplied);
-            foreach (var rule in Rules)
+            var rulesWithConclusionInDb = Rules
+                .Where(r => workingMemory.Contains(r.Conclusion.ToLower().Replace(" ", "")))
+                .ToList();
+
+            var rulesWithConditionInDb = Rules
+                .Where(r => r.Conditions.Any(cond => workingMemory.Contains(cond.ToLower().Replace(" ", ""))))
+                .ToList();
+
+            var intersection = rulesWithConditionInDb
+                .Where(r1 => rulesWithConclusionInDb
+                    .Any(r2 => r1.Conditions.Contains(r2.Conclusion)))
+                .ToList();
+
+            foreach (var rule in intersection)
             {
-                if (workingMemory.Contains(rule.Conclusion))
+                if (rulesWithConclusionInDb.Contains(rule)) { rulesWithConclusionInDb.Remove(rule); }
+                if (rulesWithConditionInDb.Contains(rule)) { rulesWithConditionInDb.Remove(rule); }
+            }
+
+            var resultBuilder = new StringBuilder();
+
+            if (!rulesWithConclusionInDb.Any() || !intersection.Any())
+            {
+                resultBuilder.AppendLine("Результат не найден");
+            }
+            else
+            {
+                foreach (var rule in intersection)
                 {
-                    return ($"Результат: {rule.Conclusion}", trace, memoryLogBuilder.ToString());
+                    foreach(var condition in rulesWithConditionInDb)
+                    {
+
+                    }
+                    bool allMatchCondition = true;
+                    foreach (var cond in rule.Conditions)
+                    {
+                        if (!workingMemory.Contains(cond.ToLower().Replace(" ", "")))
+                        {
+                            allMatchCondition = false;
+                            break;
+                        }
+                    }
+                    if (!allMatchCondition)
+                    {
+                        rulesWithConclusionInDb.Remove(rule);
+                        resultBuilder.AppendLine(rule.Conclusion);
+                        resultBuilder.AppendLine("Найденный системой результат можно уточнить. Введите дополнительные исходные данные");
+                        resultBuilder.AppendLine();
+                    }
                 }
             }
 
-            return ("Результат не найден. Уточните правила или исходные данные.", trace, memoryLogBuilder.ToString());
+            return (resultBuilder.ToString().TrimEnd(), trace, memoryLogBuilder.ToString());
         }
 
         private string FormatRule(Rule r)

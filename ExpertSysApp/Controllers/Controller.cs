@@ -72,7 +72,8 @@ namespace ExpertSysApp.Controllers
 
             var logingMemory = new HashSet<string>(userFacts);
             var memoryLogBuilder = new StringBuilder();
-            int stepCounter = 1;
+            int memoryStepCounter = 1;
+            int searchStepCounter = 1;
 
             targetGoal = targetGoal.Trim();
             if (string.IsNullOrEmpty(targetGoal))
@@ -80,15 +81,15 @@ namespace ExpertSysApp.Controllers
                 return ("Ошибка: Не указана целевая ситуация для проверки.", trace, "Рабочая память пуста.");
             }
 
-            memoryLogBuilder.AppendLine($"{stepCounter}. Исходная РБД:");
+            memoryLogBuilder.AppendLine($"{memoryStepCounter}. Исходная РБД:");
             foreach (var fact in logingMemory)
             {
                 memoryLogBuilder.AppendLine($"- {fact}");
             }
             memoryLogBuilder.AppendLine($"\nЦель (гипотеза): {targetGoal}\n");
-            stepCounter++;
+            memoryStepCounter++;
 
-            bool isProven = ProveGoalWithSteps(targetGoal, Rules, workingMemory, logingMemory, trace, memoryLogBuilder, ref stepCounter);
+            bool isProven = ProveGoalWithSteps(targetGoal, Rules, workingMemory, logingMemory, trace, memoryLogBuilder, ref memoryStepCounter, ref searchStepCounter);
 
             string resultText = isProven
                 ? $"Т.о., факты достоверны, цель подтвердилась: «{targetGoal}»."
@@ -97,7 +98,7 @@ namespace ExpertSysApp.Controllers
             return (resultText, trace, memoryLogBuilder.ToString());
         }
 
-        private bool ProveGoalWithSteps(string goal, List<Rule> allRules, HashSet<string> workingMemory, HashSet<string> logingMemory, List<TraceStep> trace, StringBuilder memoryLogBuilder, ref int stepCounter)
+        private bool ProveGoalWithSteps(string goal, List<Rule> allRules, HashSet<string> workingMemory, HashSet<string> logingMemory, List<TraceStep> trace, StringBuilder memoryLogBuilder, ref int memoryStepCounter, ref int searchStepCounter)
         {
             string normalizedGoal = goal.ToLower().Replace(" ", "");
 
@@ -124,9 +125,10 @@ namespace ExpertSysApp.Controllers
             {
                 trace.Add(new TraceStep
                 {
-                    RuleDescription = $"{stepCounter}. Ищется цель «{goal}» в заключениях правил\nПодходит правило П{rule.Id}: {FormatRule(rule)}",
+                    RuleDescription = $"{searchStepCounter}. Ищется цель «{goal}» в заключениях правил\nПодходит правило П{rule.Id}: {FormatRule(rule)}",
                     Status = TraceStatus.Partial
                 });
+                searchStepCounter++;
 
                 bool canApplyRule = true;
 
@@ -145,7 +147,7 @@ namespace ExpertSysApp.Controllers
                         Status = TraceStatus.Partial
                     });
 
-                    bool subGoalProven = ProveGoalWithSteps(condition, allRules, workingMemory, logingMemory, trace, memoryLogBuilder, ref stepCounter);
+                    bool subGoalProven = ProveGoalWithSteps(condition, allRules, workingMemory, logingMemory, trace, memoryLogBuilder, ref memoryStepCounter, ref searchStepCounter);
 
                     if (!subGoalProven)
                     {
@@ -165,13 +167,13 @@ namespace ExpertSysApp.Controllers
                         Status = TraceStatus.Success
                     });
 
-                    memoryLogBuilder.AppendLine($"{stepCounter}. РБД после срабатывания правила П{rule.Id}:");
+                    memoryLogBuilder.AppendLine($"{memoryStepCounter}. РБД после срабатывания правила П{rule.Id}:");
                     foreach (var item in logingMemory)
                     {
                         memoryLogBuilder.AppendLine($"- {item}");
                     }
                     memoryLogBuilder.AppendLine();
-                    stepCounter++;
+                    memoryStepCounter++;
 
                     return true;
                 }

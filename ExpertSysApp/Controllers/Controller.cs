@@ -65,123 +65,119 @@ namespace ExpertSysApp.Controllers
             string json = JsonSerializer.Serialize(Rules, _jsonOptions);
             File.WriteAllText(_filePath, json);
         }
-        public (string result, List<TraceStep> trace, string workingMemoryLog) SearchAnswer(List<string> userFacts)
+        public (string result, List<TraceStep> trace, string workingMemoryLog) SearchBackward(List<string> userFacts, string targetGoal)
         {
             var trace = new List<TraceStep>();
-            var logingMemory = new HashSet<string>(userFacts);
+            var workingMemory = new HashSet<string>(userFacts.Select(f => f.ToLower().Replace(" ", "")));
 
+            var logingMemory = new HashSet<string>(userFacts);
             var memoryLogBuilder = new StringBuilder();
             int stepCounter = 1;
 
-            memoryLogBuilder.AppendLine($"{stepCounter}.");
+            targetGoal = targetGoal.Trim();
+            if (string.IsNullOrEmpty(targetGoal))
+            {
+                return ("Ошибка: Не указана целевая ситуация для проверки.", trace, "Рабочая память пуста.");
+            }
+
+            memoryLogBuilder.AppendLine($"{stepCounter}. Исходная РБД:");
             foreach (var fact in logingMemory)
             {
-                memoryLogBuilder.AppendLine(fact);
+                memoryLogBuilder.AppendLine($"- {fact}");
             }
+            memoryLogBuilder.AppendLine($"\nЦель (гипотеза): {targetGoal}\n");
             stepCounter++;
 
+            bool isProven = ProveGoalWithSteps(targetGoal, Rules, workingMemory, logingMemory, trace, memoryLogBuilder, ref stepCounter);
 
-            var workingMemory = new HashSet<string>(
-                userFacts.Select(fact => fact.ToLower().Replace(" ", ""))
-                );
-            bool ruleApplied;
-            int iteration = 1;
+            string resultText = isProven
+                ? $"Т.о., факты достоверны, цель подтвердилась: «{targetGoal}»."
+                : $"Целевую ситуацию «{targetGoal}» доказать не удалось (недостаточно данных или отсутствуют правила).";
 
-            do
+            return (resultText, trace, memoryLogBuilder.ToString());
+        }
+
+        private bool ProveGoalWithSteps(string goal, List<Rule> allRules, HashSet<string> workingMemory, HashSet<string> logingMemory, List<TraceStep> trace, StringBuilder memoryLogBuilder, ref int stepCounter)
+        {
+            string normalizedGoal = goal.ToLower().Replace(" ", "");
+
+            if (workingMemory.Contains(normalizedGoal))
             {
-                ruleApplied = false;
-                foreach (var rule in Rules)
-                {
-                    bool matchAll = true;
-                    bool matchPartial = false;
+                return true;
+            }
 
-                    foreach (var cond in rule.Conditions)
+            var matchingRules = allRules
+                .Where(r => r.Conclusion.Equals(goal, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!matchingRules.Any())
+            {
+                trace.Add(new TraceStep
+                {
+                    RuleDescription = $"Цель «{goal}» не найдена в заключениях правил.",
+                    Status = TraceStatus.Unmatched
+                });
+                return false;
+            }
+
+            foreach (var rule in matchingRules)
+            {
+                trace.Add(new TraceStep
+                {
+                    RuleDescription = $"{stepCounter}. Ищется цель «{goal}» в заключениях правил\nПодходит правило П{rule.Id}: {FormatRule(rule)}",
+                    Status = TraceStatus.Partial
+                });
+
+                bool canApplyRule = true;
+
+                foreach (var condition in rule.Conditions)
+                {
+                    string normCond = condition.ToLower().Replace(" ", "");
+
+                    if (workingMemory.Contains(normCond))
                     {
-                        string temp_cond = cond.ToLower().Replace(" ", "");
-                        if (workingMemory.Contains(temp_cond))
-                        {
-                            matchPartial = true;
-                        }
-                        else
-                        {
-                            matchAll = false;
-                        }
+                        continue;
                     }
-                    string temp_rule = rule.Conclusion.ToLower().Replace(" ", "");
-                    if (matchAll && !workingMemory.Contains(temp_rule))
+
+                    trace.Add(new TraceStep
                     {
-                        workingMemory.Add(temp_rule);
-                        logingMemory.Add(rule.Conclusion);
-                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Success });
-                        memoryLogBuilder.AppendLine($"{stepCounter}.");
-                        foreach (var item in logingMemory)
-                        {
-                            memoryLogBuilder.AppendLine(item);
-                        }
-                        stepCounter++;
-                        ruleApplied = true;
+                        RuleDescription = $"Не все условия выполнены - новая цель: «{condition}»",
+                        Status = TraceStatus.Partial
+                    });
+
+                    bool subGoalProven = ProveGoalWithSteps(condition, allRules, workingMemory, logingMemory, trace, memoryLogBuilder, ref stepCounter);
+
+                    if (!subGoalProven)
+                    {
+                        canApplyRule = false;
                         break;
                     }
-                    else if (matchPartial)
-                    {
-                        if (workingMemory.Contains(temp_rule)) { continue; }
-                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Partial });
-                    }
-                    else
-                    {
-                        trace.Add(new TraceStep { RuleDescription = $"[Шаг {iteration}] {FormatRule(rule)}", Status = TraceStatus.Unmatched });
-                    }
                 }
-                iteration++;
-            } while (ruleApplied);
-            var rulesWithConclusionInDb = Rules
-                .Where(r => workingMemory.Contains(r.Conclusion.ToLower().Replace(" ", "")))
-                .ToList();
 
-            var rulesWithConditionInDb = Rules
-                .Where(r => r.Conditions.Any(cond => workingMemory.Contains(cond.ToLower().Replace(" ", ""))))
-                .ToList();
-
-            var conclusionsInDb = rulesWithConclusionInDb
-                            .Select(r => r.Conclusion)
-                            .Distinct(StringComparer.OrdinalIgnoreCase)
-                            .ToList();
-
-            var intersectionConclusions = rulesWithConclusionInDb
-                .Where(rInc => rulesWithConditionInDb
-                    .Any(rCond => rCond.Conditions.Contains(rInc.Conclusion, StringComparer.OrdinalIgnoreCase)))
-                .Select(r => r.Conclusion)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var uniqueConclusions = conclusionsInDb
-                .Except(intersectionConclusions, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var resultBuilder = new StringBuilder();
-
-            if (!rulesWithConclusionInDb.Any())
-            {
-                resultBuilder.AppendLine("Результат не найден");
-            }
-            else
-            {
-                var targetConclusions = uniqueConclusions.Any() ? uniqueConclusions : intersectionConclusions;
-
-                foreach (var conclusion in targetConclusions)
+                if (canApplyRule)
                 {
-                    resultBuilder.AppendLine(conclusion);
+                    workingMemory.Add(normalizedGoal);
+                    logingMemory.Add(goal);
 
-                    if (intersectionConclusions.Contains(conclusion, StringComparer.OrdinalIgnoreCase))
+                    trace.Add(new TraceStep
                     {
-                        resultBuilder.AppendLine("Найденный системой результат можно уточнить. Введите дополнительные исходные данные");
-                    }
+                        RuleDescription = $"Все условия выполнены\nВ РБД добавляется факт: «{goal}»",
+                        Status = TraceStatus.Success
+                    });
 
-                    resultBuilder.AppendLine();
+                    memoryLogBuilder.AppendLine($"{stepCounter}. РБД после срабатывания правила П{rule.Id}:");
+                    foreach (var item in logingMemory)
+                    {
+                        memoryLogBuilder.AppendLine($"- {item}");
+                    }
+                    memoryLogBuilder.AppendLine();
+                    stepCounter++;
+
+                    return true;
                 }
             }
 
-            return (resultBuilder.ToString().TrimEnd(), trace, memoryLogBuilder.ToString());
+            return false;
         }
 
         private string FormatRule(Rule r)

@@ -30,7 +30,9 @@ namespace ExpertSysApp
                 .Where(f => !string.IsNullOrEmpty(f))
                 .ToList();
 
-            var (result, trace, memoryLog) = _controller.SearchAnswer(facts);
+            string targetGoal = TxtTargetGoal.Text.Trim();
+
+            var (result, trace, memoryLog) = _controller.SearchBackward(facts, targetGoal);
             TxtResult.Text = result;
             TxtWorkingMemory.Text = memoryLog;
 

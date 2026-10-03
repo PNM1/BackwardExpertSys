@@ -89,16 +89,21 @@ namespace ExpertSysApp.Controllers
             memoryLogBuilder.AppendLine($"\nЦель (гипотеза): {targetGoal}\n");
             memoryStepCounter++;
 
-            bool isProven = ProveGoalWithSteps(targetGoal, Rules, workingMemory, logingMemory, trace, memoryLogBuilder, ref memoryStepCounter, ref searchStepCounter);
-
+            bool isProven = ProveGoalWithSteps(targetGoal, Rules, 
+                                                workingMemory, logingMemory, 
+                                                trace, memoryLogBuilder, 
+                                                ref memoryStepCounter, ref searchStepCounter);
             string resultText = isProven
-                ? $"Т.о., факты достоверны, цель подтвердилась: «{targetGoal}»."
-                : $"Целевую ситуацию «{targetGoal}» доказать не удалось (недостаточно данных или отсутствуют правила).";
+                ? $"Т.о., факты достоверны, цель подтвердилась: \"{targetGoal}\"."
+                : $"Целевую ситуацию \"{targetGoal}\" доказать не удалось (недостаточно данных или отсутствуют правила).";
 
             return (resultText, trace, memoryLogBuilder.ToString());
         }
 
-        private bool ProveGoalWithSteps(string goal, List<Rule> allRules, HashSet<string> workingMemory, HashSet<string> logingMemory, List<TraceStep> trace, StringBuilder memoryLogBuilder, ref int memoryStepCounter, ref int searchStepCounter)
+        private bool ProveGoalWithSteps(string goal, List<Rule> allRules, 
+                                        HashSet<string> workingMemory, HashSet<string> logingMemory, 
+                                        List<TraceStep> trace, StringBuilder memoryLogBuilder, 
+                                        ref int memoryStepCounter, ref int searchStepCounter)
         {
             string normalizedGoal = goal.ToLower().Replace(" ", "");
 
@@ -115,7 +120,7 @@ namespace ExpertSysApp.Controllers
             {
                 trace.Add(new TraceStep
                 {
-                    RuleDescription = $"Цель «{goal}» не найдена в заключениях правил.",
+                    RuleDescription = $"Цель \"{goal}\" не найдена в заключениях правил.",
                     Status = TraceStatus.Unmatched
                 });
                 return false;
@@ -125,7 +130,7 @@ namespace ExpertSysApp.Controllers
             {
                 trace.Add(new TraceStep
                 {
-                    RuleDescription = $"{searchStepCounter}. Ищется цель «{goal}» в заключениях правил\nПодходит правило П{rule.Id}: {FormatRule(rule)}",
+                    RuleDescription = $"{searchStepCounter}. Ищется цель \"{goal}\" в заключениях правил\nПодходит правило П{rule.Id}: {FormatRule(rule)}",
                     Status = TraceStatus.Partial
                 });
                 searchStepCounter++;
@@ -143,12 +148,14 @@ namespace ExpertSysApp.Controllers
 
                     trace.Add(new TraceStep
                     {
-                        RuleDescription = $"Не все условия выполнены - новая цель: «{condition}»",
+                        RuleDescription = $"Не все условия выполнены - новая цель: \"{condition}\"",
                         Status = TraceStatus.Partial
                     });
 
-                    bool subGoalProven = ProveGoalWithSteps(condition, allRules, workingMemory, logingMemory, trace, memoryLogBuilder, ref memoryStepCounter, ref searchStepCounter);
-
+                    bool subGoalProven = ProveGoalWithSteps(condition, allRules, 
+                                                            workingMemory, logingMemory,
+                                                            trace, memoryLogBuilder, 
+                                                            ref memoryStepCounter, ref searchStepCounter);
                     if (!subGoalProven)
                     {
                         canApplyRule = false;
@@ -163,7 +170,7 @@ namespace ExpertSysApp.Controllers
 
                     trace.Add(new TraceStep
                     {
-                        RuleDescription = $"Все условия выполнены\nВ РБД добавляется факт: «{goal}»",
+                        RuleDescription = $"Все условия выполнены\nВ РБД добавляется факт: \"{goal}\"",
                         Status = TraceStatus.Success
                     });
 
